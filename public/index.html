@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>The Mouse VS Cat Game</title>
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+</head>
+
+<body>
+    <audio id = "waiting-room"> <source src="asset/waiting_background.mp3" type="audio/mp3"> </audio>
+    <div id="container" class="col">
+        <div id="header" class="row">
+            <div id="title">Mouse Verses Cat</div>
+
+            <div class="spacer-grow"></div>
+
+            <div id="user-panel" class="row">
+                <div class="field-content row shadow">
+                    <span>Welcome! </span>
+                    <span class="user-name">-</span>
+                    <div id="socketId" display="none"></div>
+                </div>
+                <button id="signout-button" class="icon"><span class="material-icons">logout</span></button>
+            </div>
+        </div>
+        <div id="game-container" style="display: none">
+            <canvas width=1920 height=937
+                style="background: url(asset/kitchen_2.jpg); background-size: 100% 100%; background-repeat: no-repeat;"></canvas>
+            <svg xmlns="http://www.w3.org/2000/svg" id="counter" width="1920">
+                <text x="10" y="35">
+                    Collected Cheese:<tspan id="cheese-counter">0</tspan>
+                </text>
+            </svg>
+
+            <svg xmlns="http://www.w3.org/2000/svg" id="game-start">
+                <defs>
+                    <linearGradient id="title-fill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0.2" stop-color="red" />
+                        <stop offset="0.4" stop-color="yellow" />
+                        <stop offset="0.6" stop-color="green" />
+                        <stop offset="0.8" stop-color="purple" />
+                    </linearGradient>
+                </defs>
+                <text id="game-title" x="50%" y="45%">Mouse versus Cat!</text>
+                <text x="50%" y="60%">Click here to start the game</text>
+            </svg>
+
+            <svg xmlns="http://www.w3.org/2000/svg" id="game-over" style="display: none">
+                <defs>
+                    <linearGradient id="game-over-fill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="red" />
+                        <stop offset="0.5" stop-color="yellow" />
+                        <stop offset="1" stop-color="red" />
+                    </linearGradient>
+                </defs>
+                <text id="winning" x="10%" y="5%">Cat Wins!</text>
+                <text x="50%" y="70%">
+                    Mouse has collected
+                    <tspan id="final-cheese">0</tspan>
+                    cheese!
+                </text>
+                <text x="50%" y="75%">
+                    Cat has caught mouse
+                    <tspan id="final-caught">0</tspan>
+                    times!
+                </text>
+            </svg>
+            <button id="start_over"
+                onClick="let clickEvent = new Event('click'); document.getElementById('signout-button').dispatchEvent(clickEvent);"
+                style="display: none; width: 200px; position: absolute; top: 750px; left: 850px;">Start Over!</button>
+        </div>
+
+        <table id="ranking_table">
+            <tr>
+                <td>Rank</td>
+                <td>Player</td>
+                <td>Total wins</td>
+                <td id="win_as_what">Wins as Cat</td>
+                <td id="collection_of_what">Cheese Collected</td>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td id="Firstplayer">-</td>
+                <td id="Firstplayer_total_sum">-</td>
+                <td id="Firstplayer_winning_record">-</td>
+                <td id="Firstplayer_record">-</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td id="Secondplayer">-</td>
+                <td id="Secondplayer_total_sum">-</td>
+                <td id="Secondplayer_winning_record">-</td>
+                <td id="Secondplayer_record">-</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td id="Thirdplayer">-</td>
+                <td id="Thirdplayer_total_sum">-</td>
+                <td id="Thirdplayer_winning_record">-</td>
+                <td id="Thirdplayer_record">-</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td id="Fourthplayer">-</td>
+                <td id="Fourthplayer_total_sum">-</td>
+                <td id="Fourthplayer_winning_record">-</td>
+                <td id="Fourthplayer_record">-</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td id="Fifthplayer">-</td>
+                <td id="Fifthplayer_total_sum">-</td>
+                <td id="Fifthplayer_winning_record">-</td>
+                <td id="Fifthplayer_record">-</td>
+            </tr>
+        </table>
+
+        <table id="information_table">
+            <tr>
+                <td>Player</td>
+                <td>Total wins</td>
+                <td>Wins as Mouse</td>
+                <td>Wins as Cat</td>
+                <td>Cheese Collected</td>
+                <td>Mouse Caught</td>
+            </tr>
+            <tr>
+                <td id="Player_name">-</td>
+                <td id="Player_total_win">-</td>
+                <td id="win_as_mouse">-</td>
+                <td id="win_as_cat">-</td>
+                <td id="collection_of_cheese">-</td>
+                <td id="collection_of_mouse">-</td>
+            </tr>
+        </table>
+
+        <div id="main-panel" class="row">
+            <div id="chat-panel" class="col">
+                <div id="instruction-container" class="col" style="display: none">
+                    <button id="user_information" onclick="openTable()"
+                        style="width: 200px; position: absolute; top: 10%; left:85%; border-radius: 12px;">Player
+                        information</button>
+                    <button id="hide_user_information" onclick="hideTable()"
+                        style="display: none; width: 200px; position: absolute; top: 10%; left:85%; border-radius: 12px;">Hide
+                        table</button>
+                    <div>Gameplay:</div>
+                    <div>1. Two player will be assigned to control the mouse (with arrow keys) and cat (with WASD)
+                        respectively before the game start.</div>
+                    <div>2. Mouse needs to collect 10 cheeses to win the game and the cat needs to stop it by
+                        touching the mouse.</div>
+                    <div>3. Mouse will have 3 lives in each game, and 1 life will be deducted if it is caught by
+                        the cat.</div>
+                    <div>4. There will be mouse trap generated on the map randomly, mouse will be freezed if it
+                        steps on the mouse trap!</div>
+                    <div>5. If mouse's lives become zero, mouse will lose the game and the cat gets the win.</div>
+                    <div>6. Press and hold space-bar for a boost :) </div>
+                    <div class="role">You are assigned to be the:</div>
+                    <div class="role" id="role" style = "text-decoration: underline;"></div>
+                    <div class="spacer-0"></div>
+                    <div class="role" id="countdownText">Waiting For Another Player...</div>
+                    <div class="role" id="countdown"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="signin-overlay" class="overlay row" style="display: none">
+        <div class="content shadow row">
+            <form id="signin-form" class="col">
+                <div class="caption">SIGN IN WITH YOUR ACCOUNT</div>
+                <div class="spacer-0"></div>
+                <input id="signin-username" placeholder="Enter your username"></input>
+                <input id="signin-password" type="password" placeholder="Enter your password"></input>
+                <div class="spacer-0"></div>
+                <button type="submit">Sign In</button>
+                <div id="signin-message" class="warning center"></div>
+                <div class="spacer-grow"></div>
+            </form>
+            <div class="spacer-0"></div>
+            <form id="register-form" class="col">
+                <div class="caption">OR, REGISTER IF YOU DO NOT HAVE ONE</div>
+                <div class="spacer-0"></div>
+                <input id="register-username" maxlength="10" placeholder="Enter your username"></input>
+                <input id="register-name" maxlength="16" placeholder="Enter your name"></input>
+                <input id="register-password" type="password" placeholder="Enter your password"></input>
+                <input id="register-confirm" type="password" placeholder="Enter your password again"></input>
+                <div class="spacer-0"></div>
+                <button type="submit">Register</button>
+                <div id="register-message" class="warning center"></div>
+            </form>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <script src="scripts/bounding_box.js"></script>
+    <script src="scripts/sprite.js"></script>
+    <script src="scripts/mouse.js"></script>
+    <script src="scripts/cheese.js"></script>
+    <script src="scripts/heart.js"></script>
+    <script src="scripts/mouseTrap.js"></script>
+    <script src="scripts/cat.js"></script>
+    <script src="/socket.io/socket.io.min.js"></script>
+    <script src="scripts/socket.js"></script>
+    <script src="scripts/avatar.js"></script>
+    <script src="scripts/ui.js"></script>
+    <script src="scripts/registration.js"></script>
+    <script src="scripts/authentication.js"></script>
+    <script>
+        function openTable() {
+            Socket.checking_user_data();
+            $("#information_table").show();
+            $("#user_information").hide();
+            $("#hide_user_information").show();
+        }
+
+        function hideTable() {
+            $("#information_table").hide();
+            $("#user_information").show();
+            $("#hide_user_information").hide();
+        }
+
+        $(document).ready(function () {
+            /* Get the canvas and 2D context */
+            const cv = $("canvas").get(0);
+            const context = cv.getContext("2d");
+            /* Create the sounds */
+            const sounds = {
+                background: new Audio("asset/background.mp3"),
+                collect: new Audio("asset/collect.mp3"),
+                gameover: new Audio("asset/gameover.mp3"),
+                hit: new Audio("asset/hit.mp3"),
+                trigger: new Audio("asset/trigger.mp3")
+            };
+
+            //lab6
+            UI.initialize();
+            document.getElementById("waiting-room").play();
+            // Validate the signin
+            Authentication.validate(
+                () => {
+                    SignInForm.hide();
+                    UserPanel.update(Authentication.getUser());
+                    UserPanel.show();
+                    // UserPanel.showGame();
+                    Socket.connect();
+                    $("#socketId").text(Socket.getSocket());
+                },
+                () => {
+                    SignInForm.show();
+                }
+            );
+            //end of lab6
+
+            /* Game related */
+            const totalGameTime = 240;   // Total game time in seconds
+            let gameStartTime = 0;      // The timestamp when the game starts
+            let collectedCheese = 0;      // The number of gems collected in the game
+            var role;
+            var frameVar;
+            var socketId;
+
+            /* Cheese related */
+            const cheeseMaxAge = 4000;     // The maximum age of bad cheese in milliseconds
+            const cheeseBadAge = 3000;     // The time for the cheese to go bad in milliseconds
+            let cheeseIsBad = false;
+
+            /* Mousetrap related */
+            let mouseTrapTriggered = false;          // Whether the mousetrap is triggered
+            const mouseTrapMaxAge = 10000;     // The maximum age of the cheese in milliseconds
+            const mouseTrapTime = 1000; //how long the stun effect lasts for in milliseconds
+            let mouseTrapTimeoutId = null;
+
+            /* Mouse related */
+            let life;
+            let mouseStunned = false;
+
+            /* Cat related */
+            // let catStunned = false;
+
+            /* Create the game area */
+            const gameArea = BoundingBox(context, 555, 125, 710, 1785);
+
+            /* Create the sprites in the game */
+            const mouse = Mouse(context, 200, 600, gameArea); // The mouse
+            const cat = Cat(context, 1565, 600, gameArea);        // The cat
+            const cheese = Cheese(context, 427, 600, "yellow");        // The cheese
+            const mouseTrap = MouseTrap(context, 427, 600, "open"); // The mousetrap
+            const heart1 = Heart(context, 0, 0);
+            const heart2 = Heart(context, 64, 0);
+            const heart3 = Heart(context, 128, 0);
+            const gameAreaPoints = gameArea.getPoints();
+            Socket.setObjects(mouse, cat, cheese, mouseTrap);
+
+            function doFrame(now) {
+                Socket.updateFrameVar(frameVar);
+                if (gameStartTime == 0) gameStartTime = now;
+
+                $("#cheese-counter").text(cheese.getCollectedCheese());
+
+                /* Update the sprites */
+                cheese.update(now);
+                mouse.update(now);
+                cat.update(now);
+                if (mouseTrap.shouldDraw()) mouseTrap.update(now);
+
+                if (role == "mouse") {
+                    // randomize cheese location and make it go bad after certain time
+                    if (cheese.getAge(now) >= cheeseBadAge) {
+                        if (cheeseIsBad) {
+                            if (cheese.getAge(now) >= cheeseMaxAge) {
+                                cheese.randomize(gameArea);
+                                cheese.setColor("yellow");
+                                Socket.passObjectInfo("cheese", cheese.getXY().x, cheese.getXY().y, "yellow");
+                                cheeseIsBad = false;
+                            }
+                        } else {
+                            cheese.setColor("green");
+                            Socket.passObjectInfo("cheese", cheese.getXY().x, cheese.getXY().y, "green");
+                            cheeseIsBad = true;
+                        }
+                    }
+
+                    // randomize mousetrap and hide it after certain time
+                    if (mouseTrapTriggered && mouseTrap.getAge(now) >= 1000) {
+                        mouseTrap.randomize(gameArea);
+                        mouseTrap.changeDraw(false);
+                        Socket.passObjectInfo("mouseTrap", mouseTrap.getXY().x, mouseTrap.getXY().y, "hide");
+                        mouseTrapTriggered = false;
+                        if (!mouseTrapTimeoutId) {
+                            mouseTrapTimeoutId = setTimeout(function () {
+                                mouseTrap.changeDraw(true);
+                                Socket.passObjectInfo("mouseTrap", mouseTrap.getXY().x, mouseTrap.getXY().y, "open");
+                                mouseTrapTimeoutId = null;
+                            }, Math.floor(Math.random() * 5000));
+                        }
+                    } else if (mouseTrap.getAge(now) >= mouseTrapMaxAge) {
+                        mouseTrap.randomize(gameArea);
+                        Socket.passObjectInfo("mouseTrap", mouseTrap.getXY().x, mouseTrap.getXY().y, "hide");
+                        mouseTrap.changeDraw(false);
+                        if (!mouseTrapTimeoutId) {
+                            mouseTrapTimeoutId = setTimeout(function () {
+                                mouseTrap.changeDraw(true);
+                                Socket.passObjectInfo("mouseTrap", mouseTrap.getXY().x, mouseTrap.getXY().y, "open");
+                                mouseTrapTimeoutId = null;
+                            }, Math.floor(Math.random() * 5000));
+                        }
+                    }
+
+                    // if mouse touches cheese
+                    if (mouse.getBoundingBox().isPointInBox(cheese.getXY().x, cheese.getXY().y)) {
+                        sounds.collect.pause();
+                        sounds.collect.load();
+                        setTimeout(function () {
+                            sounds.collect.play();
+                        }, 150);
+                        cheese.collectCheese();
+                        Socket.mouseCollectCheese();
+                        cheese.randomize(gameArea);
+                        cheese.setColor("yellow");
+                        Socket.passObjectInfo("cheese", cheese.getXY().x, cheese.getXY().y, "yellow");
+                    }
+
+                    // if mouse touches mousetrap
+                    if (mouse.getBoundingBox().isPointInBox(mouseTrap.getXY().x, mouseTrap.getXY().y) && !mouseTrapTriggered && mouseTrap.shouldDraw()) {
+                        mouseTrap.setStatus("close");
+                        Socket.passObjectInfo("mouseTrap", mouseTrap.getXY().x, mouseTrap.getXY().y, "close");
+                        sounds.trigger.play();
+                        mouse.stop(5); //freeze the rat facing the direction it is already facing
+                        Socket.updateSprite("mouse", "stop", 5);
+                        mouseTrapTriggered = true;
+                    }
+
+                    // if mouse touches cat
+                    if (cat.getBoundingBox().isPointInBox(mouse.getXY().x, mouse.getXY().y) && !cat.getIsStunned()) {
+                        sounds.hit.play();
+                        mouse.reduceLife();
+                        mouse.getHurt();
+                        Socket.mouseHurt();
+                        cat.stop(5);
+                        Socket.updateSprite("cat", "stop", 5);
+                        mouseStunned = true;
+                        cat.setStunned(true);
+                        setTimeout(function () { mouseStunned = false; mouse.stop(5); Socket.updateSprite("mouse", "stop", 5); }, 200);
+                        setTimeout(function () { cat.setStunned(false); }, 2000);
+                    }
+                }
+
+                /* Clear the screen */
+                context.clearRect(0, 0, cv.width, cv.height);
+
+                /* Draw the sprites */
+                if (mouse.getLife() >= 3) { heart3.draw(); }
+                if (mouse.getLife() >= 2) { heart2.draw(); }
+                if (mouse.getLife() >= 1) { heart1.draw(); }
+                cheese.draw();
+                if (mouseTrap.shouldDraw()) mouseTrap.draw();
+                mouse.draw();
+                cat.draw();
+
+                collectedCheese = cheese.getCollectedCheese();
+                life = mouse.getLife();
+                if (life <= 0 || collectedCheese >= 10) {
+                    $("#final-cheese").text(collectedCheese);
+                    $("#final-caught").text(3 - life);
+                    // 0, You lose; 1, You win
+                    // let status = 0;
+                    // cat wins = 0, mouse wins = 1;
+                    // let win_as_what = 0;
+
+                    if (role == "mouse") {
+                        if (life <= 0) {
+                            Socket.gameOver("cat", collectedCheese, life);
+                            // $("#winning").text("CAT WINS!");
+                            // win_as_what = 0;
+                            // $("#winning").text("CAT WINS!");
+                            // document.getElementById("win_as_what").innerHTML = "Win as Cat";
+                            // document.getElementById("collection_of_what").innerHTML = "Times of catching mouse";
+                            Socket.update_new_data(role, collectedCheese, 3 - life, 0);
+                            Socket.passWinMsg(collectedCheese, 3 - life, 1);
+                            // if (role == "cat") {
+                            //     status = 1;
+                            //     Socket.update_new_data(role, collectedCheese, 3 - life, status);
+                            // }
+                            Socket.sort(0);
+                        } else if (collectedCheese >= 10) {
+                            Socket.gameOver("mouse", collectedCheese, life);
+                            // $("#winning").text("MOUSE WINS!");
+                            // win_as_what = 1;
+                            // $("#winning").text("MOUSE WINS!");
+                            // document.getElementById("win_as_what").innerHTML = "Win as Mouse";
+                            // document.getElementById("collection_of_what").innerHTML = "Collection of cheese";
+                            // if (role != "mouse") {
+                            //     Socket.update_new_data(role, collectedCheese, 3 - life, status);
+                            // }
+                            Socket.update_new_data(role, collectedCheese, 3 - life, 1);
+                            Socket.passWinMsg(collectedCheese, 3 - life, 0);
+                            Socket.sort(1);
+                        }
+                        $("#game-over").show();
+                        $("#ranking_table").show();
+                        $("#start_over").show();
+                        sounds.collect.pause();
+                        sounds.background.pause();
+                        sounds.gameover.play();
+                        return;
+                    }
+                }
+                /* Process the next frame */
+                frameVar = requestAnimationFrame(doFrame);
+            }
+
+            $("#game-start").on("click", function () {
+                sounds.background.play();
+                role = document.getElementById("role").textContent.toLowerCase();
+                socketId = document.getElementById("socketId").textContent;
+                mouseTrap.changeDraw(false);
+                cheese.resetCollectedCheese();
+                mouse.resetLife();
+                cat.setStunned(false);
+                /* Hide the start screen */
+                $("#game-start").hide();
+                if (role == "mouse") {
+                    cheese.randomize(gameArea);
+                    mouseTrap.randomize(gameArea);
+                    Socket.passObjectInfo("cheese", cheese.getXY().x, cheese.getXY().y, "yellow");
+                    Socket.passObjectInfo("mouseTrap", mouseTrap.getXY().x, mouseTrap.getXY().y, "hide");
+                    Socket.updateSprite("mouse", "setSpeed", mouse.getSpeed());
+                    Socket.updateSprite("cat", "setSpeed", cat.getSpeed());
+                }
+                // sounds.background.play();
+
+                // mouse movement
+                $(document).on("keydown", function (event) {
+                    if (role == "mouse") {
+                        //mouse movement with sync
+                        if (!mouseTrapTriggered && !mouseStunned) {
+                            if (event.keyCode == 37) {
+                                mouse.move(1); //LEFT
+                                Socket.updateSprite("mouse", "move", 1);
+                            }
+                            if (event.keyCode == 38) {
+                                mouse.move(2); //UP
+                                Socket.updateSprite("mouse", "move", 2);
+                            }
+                            if (event.keyCode == 39) {
+                                mouse.move(3); //RIGHT
+                                Socket.updateSprite("mouse", "move", 3);
+                            }
+                            if (event.keyCode == 40) {
+                                mouse.move(4); //DOWN
+                                Socket.updateSprite("mouse", "move", 4);
+                            }
+                            if (event.keyCode == 32) {
+                                mouse.speedUp();
+                                Socket.updateSprite("mouse", "setSpeed", mouse.getSpeed());
+                            }
+                        }
+                    } else if (role == "cat") {
+                        // cat movement
+                        if (!cat.getIsStunned()) {
+                            if (event.keyCode == 65) {
+                                cat.move(1); //W
+                                Socket.updateSprite("cat", "move", 1);
+                            }
+                            if (event.keyCode == 87) {
+                                cat.move(2); //A
+                                Socket.updateSprite("cat", "move", 2);
+                            }
+                            if (event.keyCode == 68) {
+                                cat.move(3); //D
+                                Socket.updateSprite("cat", "move", 3);
+                            }
+                            if (event.keyCode == 83) {
+                                cat.move(4); //S
+                                Socket.updateSprite("cat", "move", 4);
+                            }
+                            if (event.keyCode == 32) {
+                                cat.speedUp();
+                                Socket.updateSprite("cat", "setSpeed", cat.getSpeed());
+                            }
+                        }
+                    }
+                });
+
+                $(document).on("keyup", function (event) {
+                    if (role == "mouse") {
+                        //mouse movement
+                        if (event.keyCode == 37) {
+                            mouse.stop(1); //LEFT
+                            Socket.updateSprite("mouse", "stop", 1);
+                        }
+                        if (event.keyCode == 38) {
+                            mouse.stop(2); //UP
+                            Socket.updateSprite("mouse", "stop", 2);
+                        }
+                        if (event.keyCode == 39) {
+                            mouse.stop(3); //RIGHT
+                            Socket.updateSprite("mouse", "stop", 3);
+                        }
+                        if (event.keyCode == 40) {
+                            mouse.stop(4); //DOWN
+                            Socket.updateSprite("mouse", "stop", 4);
+                        }
+                        if (event.keyCode == 32) {
+                            mouse.slowDown();
+                            Socket.updateSprite("mouse", "setSpeed", mouse.getSpeed());
+                        }
+                    } else if (role == "cat") {
+                        //cat movement
+                        if (event.keyCode == 65) {
+                            cat.stop(1); //W
+                            Socket.updateSprite("cat", "stop", 1);
+                        }
+                        if (event.keyCode == 87) {
+                            cat.stop(2); //A
+                            Socket.updateSprite("cat", "stop", 2);
+                        }
+                        if (event.keyCode == 68) {
+                            cat.stop(3); //D
+                            Socket.updateSprite("cat", "stop", 3);
+                        }
+                        if (event.keyCode == 83) {
+                            cat.stop(4); //S
+                            Socket.updateSprite("cat", "stop", 4);
+                        }
+                        if (event.keyCode == 32) {
+                            cat.slowDown();
+                            Socket.updateSprite("cat", "setSpeed", cat.getSpeed());
+                        }
+                    }
+                });
+
+                // stop animations when user clicks signout
+                $("#signout-button").on("click", function () {
+                    window.cancelAnimationFrame(frameVar);
+                });
+
+                /* Start the game */
+                requestAnimationFrame(doFrame);
+            });
+        });
+    </script>
+</body>
+
+</html>
